@@ -1,6 +1,6 @@
 import pandas as pd
 import plotly.express as px
-import streamlit as st 
+import streamlit as st
 
 st.set_page_config(
     page_title='Dashboard de Salários na Área de Dados',
@@ -8,7 +8,6 @@ st.set_page_config(
     layout='wide'
 )
 
-#df = pd.read_csv('https://raw.githubusercontent.com/vqrca/dashboard_salarios_dados/refs/heads/main/dados-imersao-final.csv')
 df = pd.read_csv('dados-imersao-final.csv')
 # Barra lateral (Filtros)
 st.sidebar.header('🔍 Filtros')
@@ -89,8 +88,9 @@ with col_graf2:
             x='usd',
             nbins=30,
             title='Distribuição de salários anuais',
-            labels={'usd': 'Faixa salarial (USD)', 'count': ''}    
+            labels={'usd': 'Faixa salarial (USD)'}    
         )
+        grafico_hist.update_yaxes(title='Quantidade de pessoas')
         grafico_hist.update_layout(title_x=0.1)
         st.plotly_chart(grafico_hist, use_container_width=True)
     else:
@@ -107,8 +107,7 @@ with col_graf3:
             names='tipo_trabalho',
             values='quantidade',
             title='Proporção dos tipos de trabalho',
-            hole=0.5
-        )
+            hole=0.5,)
         grafico_remoto.update_traces(textinfo='percent+label')
         grafico_remoto.update_layout(title_x=0.1)
         st.plotly_chart(grafico_remoto, use_container_width=True)
@@ -122,14 +121,34 @@ with col_graf4:
         grafico_paises = px.choropleth(media_ds_pais,
                     locations='residencia_iso3',
                     color='usd',
-                    color_continuous_scale='rdylgn',
+                    color_continuous_scale='Blues',
                     title='Salário médio dos Cientistas de Dados por País',
                     labels={'usd': 'Salário médio (USD)', 'residencia_iso3': 'País'})
         grafico_paises.update_layout(title_x=0.1)
         st.plotly_chart(grafico_paises, use_container_width=True)
     else:
         st.warning('Nenhum dado para exibir no gráfico de países.')
-        
+
+col_graf5 = st.columns(1) 
+blues_discrete = ["#758ba1", "#c8d4df", "#3a6a97", "#0a84f6"]
+
+with col_graf5[0]:
+        df_cargo = df[df['cargo'] == 'Data Scientist']
+        media_cargo = df_cargo.groupby(['ano', 'senioridade'])['usd'].mean().reset_index()
+        grafico_cargo1 = px.line(media_cargo,
+                                 x='ano',
+                                 y='usd',
+                                 color='senioridade',
+                                 markers=True,
+                                 color_discrete_sequence=blues_discrete,
+                                 title='Média salarial de Cientistas de Dados por nível de Experiência',
+                                 labels={'ano': 'Ano', 
+                                         'usd': 'Salário (USD)',
+                                         'senioridade': 'Nível de Experiência'})
+                                 
+        grafico_cargo1.update_layout(title_x=0.05)
+        st.plotly_chart(grafico_cargo1, use_container_width=True)
+
 # --- Tabela de Dados Detalhados ---
 st.subheader("Dados Detalhados")
 st.dataframe(df_filtrado)
